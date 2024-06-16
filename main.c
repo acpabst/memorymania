@@ -5,7 +5,7 @@
 
 #include "memorymania.h"
 
-/*// adapted for this game from jstest 
+// adapted for this game from jstest 
 char getButtonPress(int fd, unsigned char *buttons) {
 
     char *button;
@@ -32,7 +32,7 @@ char getButtonPress(int fd, unsigned char *buttons) {
     return supported_chars[i];
 }
 
-*/
+
 int main (int argc, char*argv[]) {
 
     int fd;
@@ -45,13 +45,13 @@ int main (int argc, char*argv[]) {
     char test_buffer[] = {'N','N'};
 
     // open controller
-  /*  if ((fd = open(argv[argc - 1], O_RDONLY)) < 0) {
+    if ((fd = open(argv[argc - 1], O_RDONLY)) < 0) {
 	printf("Error opening device.");
 	return 1;
     }
     ioctl(fd, JSIOCGVERSION, &version);
     ioctl(fd, JSIOCGBUTTONS, &buttons);
-*/
+
     // generate the first character
     int index_max = sizeof(supported_chars) - 1;
     int rand_index = rand() % (index_max + 1 - 0);
@@ -62,8 +62,8 @@ int main (int argc, char*argv[]) {
 
     while(!game_over) {
 	 for (int i = 0; i < score + 1; i++) {
-	    char input = getchar();
-	    //char input = getButtonPress(fd, &buttons);
+	    //char input = getchar();
+	    char input = getButtonPress(fd, &buttons);
 	    printf("You said: %c\n", input);
 	    if (input == test_buffer[i]) {
 	        printf("Correct!\n");
