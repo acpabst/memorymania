@@ -9,8 +9,8 @@
 char getButtonPress(int fd, unsigned char *buttons) {
 
     printf("Getting button press\n");
-    char *button;
-    int i;
+    char button;
+    //int i;
     bool waiting = true;
     struct js_event js;
     js.type = JS_EVENT_INIT;
@@ -19,7 +19,7 @@ char getButtonPress(int fd, unsigned char *buttons) {
     js.value = 0;
     
 
-    button = calloc(buttons, sizeof(char));
+    //button = calloc(buttons, sizeof(char));
     printf("Made it here 2\n");
 
     while (waiting) {
@@ -34,7 +34,7 @@ char getButtonPress(int fd, unsigned char *buttons) {
 	printf("number: %i\n", js.number);
 	
 
-        if (js.type == JS_EVENT_BUTTON) {
+        /*if (js.type == JS_EVENT_BUTTON) {
             button[js.number] = js.value;
             waiting = false;
             // TODO change this so the button range only works for the supported buttons
@@ -44,13 +44,39 @@ char getButtonPress(int fd, unsigned char *buttons) {
                     printf("Corresponding letter: %c\n", supported_chars[i]);
                 }
             }
+	}*/
+	switch(js.number) {
+	    case 0:
+                printf("Pressed A\n");
+		button = 'A';
+		break;
+	    case 1:
+		printf("Pressed B\n");
+		button = 'B';
+		break;
+	    case 2:
+		printf("Pressed X\n");
+		button = 'X';
+		break;
+	    case 3:
+		printf("Pressed Y\n");
+		button = 'Y';
+		break;
+	    case 4:
+		printf("Pressed L\n");
+		button = 'L';
+		break;
+	    case 5:
+		printf("Pressed R\n");
+		button = 'R';
+		break;
+	    default:
+		printf("Invalid button pressed.\n");
+		break;
 	}
         printf("Made it here 4\n");
     }
-    if (i > 5) {
-        i = 0;
-    }
-    return supported_chars[i];
+    return button;
 }
 
 
