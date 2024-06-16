@@ -8,26 +8,36 @@
 // adapted for this game from jstest 
 char getButtonPress(int fd, unsigned char *buttons) {
 
+    printf("Getting button press\n");
     char *button;
     int i;
+    bool waiting = true;
     struct js_event js;
 
     button = calloc(buttons, sizeof(char));
+    printf("Made it here 2\n");
 
-    if (read(fd, &js, sizeof(struct js_event)) != sizeof(struct js_event)) {
-        printf("Something went wrong");	
-        return 1;
-    }
+    while (waiting) {
 
-    if ((js.type & ~JS_EVENT_INIT) == JS_EVENT_BUTTON) {
-        button[js.number] = js.value;
-    }
-    // TODO change this so the button range only works for the supported buttons
-    for (int i = 0; i < buttons; i++) {
-        if(button[i]) {
-	     printf("Character pressed: %i\n", i);
-	     printf("Corresponding letter: %c\n", supported_chars[i]);
+        if (read(fd, &js, sizeof(struct js_event)) != sizeof(struct js_event)) {
+            printf("Something went wrong");	
+            return 1;
+        }
+
+        if ((js.type & ~JS_EVENT_INIT) == JS_EVENT_BUTTON) {
+            button[js.number] = js.value;
+            waiting = false;
 	}
+        printf("Made it here 3\n");
+        // TODO change this so the button range only works for the supported buttons
+        for (int i = 0; i < buttons; i++) {
+            if(button[i]) {
+	        printf("Character pressed: %i\n", i);
+	        printf("Corresponding letter: %c\n", supported_chars[i]);
+	    }
+	}
+    if (i > 5) {
+        i = 0;
     }
     return supported_chars[i];
 }
