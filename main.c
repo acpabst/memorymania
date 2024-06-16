@@ -14,6 +14,9 @@ char getButtonPress(int fd, unsigned char *buttons) {
     bool waiting = true;
     struct js_event js;
     js.type = JS_EVENT_INIT;
+    js.number = 0;
+    js.time = 0;
+    js.value = 0;
     
 
     button = calloc(buttons, sizeof(char));
@@ -27,6 +30,9 @@ char getButtonPress(int fd, unsigned char *buttons) {
         }
 	printf("Made it here 3\n");
 	printf("type: %i\n", js.type);
+	printf("value: %i\n", js.value);
+	printf("number: %i\n", js.number);
+	
 
         if (js.type == JS_EVENT_BUTTON) {
             button[js.number] = js.value;
