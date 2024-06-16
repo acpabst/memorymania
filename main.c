@@ -29,9 +29,9 @@ char getButtonPress(int fd, unsigned char *buttons) {
             return 1;
         }
 	printf("Made it here 3\n");
-	printf("type: %i\n", js.type);
-	printf("value: %i\n", js.value);
-	printf("number: %i\n", js.number);
+	//printf("type: %i\n", js.type);
+	//printf("value: %i\n", js.value);
+	//printf("number: %i\n", js.number);
 	
 
         if (js.type == JS_EVENT_BUTTON) {
@@ -123,10 +123,10 @@ int main (int argc, char*argv[]) {
 		game_over = true;
 		break;
             }
-	    if (i == score) {
+	    /*if (i == score) {
 	        input = getchar(); // get the enter press. don't do anything with it
 	        printf("Extra character: %i\n", input);
-	    }
+	    }*/
 	    // logic for if the strong is correct or not
 	 }
 	 score++;
