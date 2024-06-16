@@ -34,8 +34,9 @@ char getButtonPress(int fd, unsigned char *buttons) {
 	printf("number: %i\n", js.number);
 	
 
-        /*if (js.type == JS_EVENT_BUTTON) {
-            button[js.number] = js.value;
+        if (js.type == JS_EVENT_BUTTON) {
+	   waiting = false;
+           /* button[js.number] = js.value;
             waiting = false;
             // TODO change this so the button range only works for the supported buttons
 	    for (int i = 0; i < buttons; i++) {
@@ -45,34 +46,35 @@ char getButtonPress(int fd, unsigned char *buttons) {
                 }
             }
 	}*/
-	switch(js.number) {
-	    case 0:
-                printf("Pressed A\n");
-		button = 'A';
-		break;
-	    case 1:
-		printf("Pressed B\n");
-		button = 'B';
-		break;
-	    case 2:
-		printf("Pressed X\n");
-		button = 'X';
-		break;
-	    case 3:
-		printf("Pressed Y\n");
-		button = 'Y';
-		break;
-	    case 4:
-		printf("Pressed L\n");
-		button = 'L';
-		break;
-	    case 5:
-		printf("Pressed R\n");
-		button = 'R';
-		break;
-	    default:
-		printf("Invalid button pressed.\n");
-		break;
+	    switch(js.number) {
+	        case 0:
+                    printf("Pressed A\n");
+		    button = 'A';
+		    break;
+	        case 1:
+		    printf("Pressed B\n");
+		    button = 'B';
+		    break;
+	        case 2:
+		    printf("Pressed X\n");
+		    button = 'X';
+		    break;
+	        case 3:
+		    printf("Pressed Y\n");
+		    button = 'Y';
+		    break;
+	        case 4:
+		    printf("Pressed L\n");
+		    button = 'L';
+		    break;
+	        case 5:
+		    printf("Pressed R\n");
+		    button = 'R';
+		    break;
+	        default:
+		    printf("Invalid button pressed.\n");
+		    break;
+	    }
 	}
         printf("Made it here 4\n");
     }
