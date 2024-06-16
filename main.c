@@ -23,12 +23,13 @@ char getButtonPress(int fd, unsigned char *buttons) {
             printf("Something went wrong");	
             return 1;
         }
+	printf("Made it here3\n");
 
         if ((js.type & ~JS_EVENT_INIT) == JS_EVENT_BUTTON) {
             button[js.number] = js.value;
             waiting = false;
 	}
-        printf("Made it here 3\n");
+        printf("Made it here 4\n");
         // TODO change this so the button range only works for the supported buttons
         for (int i = 0; i < buttons; i++) {
             if(button[i]) {
