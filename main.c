@@ -36,6 +36,7 @@ char getButtonPress(int fd, unsigned char *buttons) {
 	        printf("Corresponding letter: %c\n", supported_chars[i]);
 	    }
 	}
+    }
     if (i > 5) {
         i = 0;
     }
