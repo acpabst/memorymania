@@ -45,10 +45,12 @@ int main (int argc, char*argv[]) {
     char test_buffer[] = {'N','N'};
 
     // open controller
+    printf("Opening device: %s\n", argv[argc - 1]);
     if ((fd = open(argv[argc - 1], O_RDONLY)) < 0) {
 	printf("Error opening device.");
 	return 1;
     }
+    printf("Made it here\n");
     ioctl(fd, JSIOCGVERSION, &version);
     ioctl(fd, JSIOCGBUTTONS, &buttons);
 
