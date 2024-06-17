@@ -20,7 +20,7 @@ char getButtonPress(int fd, unsigned char *buttons) {
     
 
     //button = calloc(buttons, sizeof(char));
-    printf("Made it here 2\n");
+    //printf("Made it here 2\n");
 
     while (waiting) {
 
@@ -28,7 +28,7 @@ char getButtonPress(int fd, unsigned char *buttons) {
             printf("Something went wrong");	
             return 1;
         }
-	printf("Made it here 3\n");
+	//printf("Made it here 3\n");
 	//printf("type: %i\n", js.type);
 	//printf("value: %i\n", js.value);
 	//printf("number: %i\n", js.number);
@@ -76,7 +76,7 @@ char getButtonPress(int fd, unsigned char *buttons) {
 		    break;
 	    }
 	}
-        printf("Made it here 4\n");
+        //printf("Made it here 4\n");
     }
     return button;
 }
@@ -99,7 +99,7 @@ int main (int argc, char*argv[]) {
 	printf("Error opening device.");
 	return 1;
     }
-    printf("Made it here\n");
+    //printf("Made it here\n");
     ioctl(fd, JSIOCGVERSION, &version);
     ioctl(fd, JSIOCGBUTTONS, &buttons);
 
@@ -112,7 +112,9 @@ int main (int argc, char*argv[]) {
     printf("Begin Sequence. Type this letter\n");
 
     while(!game_over) {
+	 printf("score: %i\n", score);
 	 for (int i = 0; i < score + 1; i++) {
+	    printf("i: %i\n", i);
 	    //char input = getchar();
 	    char input = getButtonPress(fd, &buttons);
 	    printf("You said: %c\n", input);
