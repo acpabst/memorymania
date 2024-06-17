@@ -112,8 +112,8 @@ int main (int argc, char*argv[]) {
     printf("Begin Sequence. Type this letter\n");
 
     while(!game_over) {
-	 printf("score: %i\n", score);
-	 for (int i = 0; i < score + 1; i++) {
+	printf("score: %i\n", score);
+	for (int i = 0; i <= score; i++) {
 	    printf("i: %i\n", i);
 	    //char input = getchar();
 	    char input = getButtonPress(fd, &buttons);
@@ -125,18 +125,13 @@ int main (int argc, char*argv[]) {
 		game_over = true;
 		break;
             }
-	    /*if (i == score) {
-	        input = getchar(); // get the enter press. don't do anything with it
-	        printf("Extra character: %i\n", input);
-	    }*/
-	    // logic for if the strong is correct or not
-	 }
-	 score++;
-	 if (score > MAX_SCORE) {
+	}
+	score++;
+	if (score > MAX_SCORE) {
 	    printf("You win!\n");
 	    game_over = true;
 	    break;
-	 }
+        }
         
         // generate new character
 	int index_max = sizeof(supported_chars) - 1;
