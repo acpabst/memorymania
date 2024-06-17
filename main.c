@@ -127,7 +127,7 @@ int main (int argc, char*argv[]) {
             }
 	}
 	score++;
-	if (score > MAX_SCORE) {
+	if (score >= MAX_SCORE) {
 	    printf("You win!\n");
 	    game_over = true;
 	    break;
