@@ -99,6 +99,8 @@ int main (int argc, char*argv[]) {
 	printf("Error opening device.");
 	return 1;
     }
+    printf("Welcome to MEMORY MANIA!!\n");
+    printf("Try to remember the sequence! The max score on today's game is %i.\n", MAX_SCORE);
     //printf("Made it here\n");
     ioctl(fd, JSIOCGVERSION, &version);
     ioctl(fd, JSIOCGBUTTONS, &buttons);

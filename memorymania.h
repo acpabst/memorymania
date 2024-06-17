@@ -15,5 +15,5 @@
 // Supported Characters
 char supported_chars[] = {'A', 'B', 'X', 'Y', 'L', 'R'};
 
-#define MAX_SCORE 2
+#define MAX_SCORE 10
 
