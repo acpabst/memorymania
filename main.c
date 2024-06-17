@@ -91,7 +91,7 @@ int main (int argc, char*argv[]) {
     unsigned char buttons = 2;
     int version = 0x000800;
 
-    char test_buffer[] = {'N','N'};
+    char test_buffer[] = {'N','N','N','N','N','N','N','N','N','N','N'};
 
     // open controller
     printf("Opening device: %s\n", argv[argc - 1]);
