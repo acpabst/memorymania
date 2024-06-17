@@ -34,7 +34,7 @@ char getButtonPress(int fd, unsigned char *buttons) {
 	//printf("number: %i\n", js.number);
 	
 
-        if (js.type == JS_EVENT_BUTTON) {
+        if (js.type == JS_EVENT_BUTTON && js.value == 1) {
 	   waiting = false;
            /* button[js.number] = js.value;
             waiting = false;
