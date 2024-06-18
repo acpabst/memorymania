@@ -20,14 +20,14 @@
 // Supported Characters
 char supported_chars[] = {'A', 'B', 'X', 'Y', 'L', 'R'};
 
-//#define MEMORYMANIA_DEBUG 1 
+#define MEMORYMANIA_DEBUG 0
 
-#ifdef MEMORYMANIA_DEBUG
+#if MEMORYMANIA_DEBUG
    /* This one for keyboard input */
 #  define getInput(args...) fgetc(stdin)
 #else
     /* This one for XBOX Controller input*/
-#  define getInput(args...) getButtonPress(## args)
+#  define getInput(fd, buttons) getButtonPress(fd, buttons)
 #endif
 
 
