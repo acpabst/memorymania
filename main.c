@@ -26,16 +26,17 @@ void set_signal_handling() {
     int sa = sigaction(SIGALRM, &new_action, NULL);
     if (sa != 0) {
         syslog(LOG_ERR, "Failed to register for SIGALRM. Error: %d", sa);
-        exit(-1);
+        printf("Failed to register for SIGALRM. Error: %d\n", sa);
+	exit(-1);
     }
     sa = sigaction(SIGUSR1, &new_action, NULL);
     if (sa != 0) {
         syslog(LOG_ERR, "Failed to register for SIGUSR. Error: %d", sa);
+        printf("Failed to register for SIGUSR. Error: %d\n", sa);
         exit(-1);
     }
-
     syslog(LOG_INFO, "Signal Handling set up complete.");
-    printf("Signal handling set up.\n");
+    printf("Signal handling set up complete.\n");
 }
 
 void game_timer() {
@@ -62,6 +63,7 @@ void game_timer() {
 	sleep(0.01);
         if(caught_sigalrm) {
 	    printf("Sigalarm caught. Time is up!\n");
+	    game_over = true;
 	    break;
 	}
 	if(caught_sigusr) {
@@ -86,12 +88,13 @@ char getButtonPress(int fd, unsigned char *buttons) {
     js.number = 0;
     js.time = 0;
     js.value = 0;
+
+    if (caught_sigalrm) {
+        // time is up, return dummy character
+        printf("Time is up, from button press\n");
+    }
     
-
-    //button = calloc(buttons, sizeof(char));
-    //printf("Made it here 2\n");
-
-    while (waiting) {
+    //while (waiting) {
 
         if (read(fd, &js, sizeof(struct js_event)) != sizeof(struct js_event)) {
             printf("Something went wrong");	
@@ -99,20 +102,11 @@ char getButtonPress(int fd, unsigned char *buttons) {
         }
 	if (caught_sigalrm) {
 	    // time is up, return dummy character
+	    printf("Time is up, from button press\n");
             return 'N';
 	}
         if (js.type == JS_EVENT_BUTTON && js.value == 1) {
-	   waiting = false;
-           /* button[js.number] = js.value;
-            waiting = false;
-            // TODO change this so the button range only works for the supported buttons
-	    for (int i = 0; i < buttons; i++) {
-                if(button[i]) {
-                    printf("Character pressed: %i\n", i);
-                    printf("Corresponding letter: %c\n", supported_chars[i]);
-                }
-            }
-	}*/
+	    waiting = false;
 	    switch(js.number) {
 	        case 0:
                     printf("Pressed A\n");
@@ -143,8 +137,7 @@ char getButtonPress(int fd, unsigned char *buttons) {
 		    break;
 	    }
 	}
-        //printf("Made it here 4\n");
-    }
+    //}
     return button;
 }
 
