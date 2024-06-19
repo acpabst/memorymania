@@ -12,7 +12,6 @@ bool caught_sigusr = false;
 static void signal_handler(int signal_number) {
     if (signal_number == SIGALRM) {
 	caught_sigalrm = true;
-	game_over = true;
     }
     if (signal_number == SIGUSR1) {
 	caught_sigusr = true;
@@ -39,7 +38,7 @@ void set_signal_handling() {
     printf("Signal handling set up complete.\n");
 }
 
-void game_timer() {
+void game_timer(int ppid) {
     time_t t;
     int r;
     int num_char;
@@ -63,7 +62,7 @@ void game_timer() {
 	sleep(0.01);
         if(caught_sigalrm) {
 	    printf("Sigalarm caught. Time is up!\n");
-	    game_over = true;
+	    kill(ppid, SIGALRM);
 	    break;
 	}
 	if(caught_sigusr) {
@@ -94,15 +93,16 @@ char getButtonPress(int fd, unsigned char *buttons) {
         printf("Time is up, from button press\n");
     }
     
-    //while (waiting) {
+    while (waiting) {
 
         if (read(fd, &js, sizeof(struct js_event)) != sizeof(struct js_event)) {
             printf("Something went wrong");	
             return 1;
         }
+
 	if (caught_sigalrm) {
 	    // time is up, return dummy character
-	    printf("Time is up, from button press\n");
+	    printf("Time is up, from button press 2\n");
             return 'N';
 	}
         if (js.type == JS_EVENT_BUTTON && js.value == 1) {
@@ -137,7 +137,7 @@ char getButtonPress(int fd, unsigned char *buttons) {
 		    break;
 	    }
 	}
-    //}
+    }
     return button;
 }
 
@@ -169,12 +169,13 @@ int main (int argc, char*argv[]) {
 
     // begin timer
     printf("Creating timer . . .\n");
+    int ppid = getpid();
     r = fork();
     if (r < 0) {
         printf("Error creating timer fork: %d\n", errno);
 	exit(-1);
     } else if (r == 0) {
-	game_timer();
+	game_timer(ppid);
     }
 
     // generate the first character
@@ -187,11 +188,16 @@ int main (int argc, char*argv[]) {
 
     while(!game_over) {
 	printf("score: %i\n", score);
+	if (caught_sigalrm) {
+	    printf("Sigalrm caught main 1\n");
+	}
 	for (int i = 0; i <= score; i++) {
 	    printf("i: %i\n", i);
 	    char input = getInput(fd, &buttons);
 	    if (caught_sigalrm) {
-		    printf("Something is happening. . .\n");
+		printf("Sigalrm caught main 2\n");
+		game_over = true;
+	        break;
 	    }
 	    printf("You said: %c\n", input);
 	    if (input == test_buffer[i]) {
@@ -211,7 +217,7 @@ int main (int argc, char*argv[]) {
 	    break;
         }
 
-	if (MEMORYMANIA_DEBUG) {
+	if (MEMORYMANIA_DEBUG && !game_over) {
 	    getchar(); // get carriage return
 	}
         
