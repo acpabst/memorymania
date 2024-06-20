@@ -4,38 +4,31 @@
  * Date: 6/12/24 */
 
 #include "memorymania.h"
+#include "helpers.c"
 
-bool game_over = false;
-bool caught_sigalrm = false;
-bool caught_sigusr = false;
+int test() {
+   // open buffer
+   int buffer;
+   char buffer_entry[2];
+   buffer_entry[1] = '\n';
 
-static void signal_handler(int signal_number) {
-    if (signal_number == SIGALRM) {
-	caught_sigalrm = true;
-    }
-    if (signal_number == SIGUSR1) {
-	caught_sigusr = true;
-    }
-}
+   buffer = open(BUFFER, O_RDWR);
+   if (buffer < 0) {
+        printf("Error opening buffer device.\n");
+        return 1;
+   }
+   printf("file descriptor: %i\n", buffer);
 
-void set_signal_handling() {
-    struct sigaction new_action;
-    memset(&new_action, 0, sizeof(struct sigaction));
-    new_action.sa_handler = signal_handler; 
-    int sa = sigaction(SIGALRM, &new_action, NULL);
-    if (sa != 0) {
-        syslog(LOG_ERR, "Failed to register for SIGALRM. Error: %d", sa);
-        printf("Failed to register for SIGALRM. Error: %d\n", sa);
-	exit(-1);
-    }
-    sa = sigaction(SIGUSR1, &new_action, NULL);
-    if (sa != 0) {
-        syslog(LOG_ERR, "Failed to register for SIGUSR. Error: %d", sa);
-        printf("Failed to register for SIGUSR. Error: %d\n", sa);
-        exit(-1);
-    }
-    syslog(LOG_INFO, "Signal Handling set up complete.");
-    printf("Signal handling set up complete.\n");
+   buffer_entry[0] = 'T';
+   
+   int res = write(buffer, &buffer_entry, 2);
+   printf("write: %i\n", res);
+
+   char buf[100];
+   res = read(buffer, buf, 100);
+   printf("errno: %i\n", errno);
+   printf("num: %i, read: %s\n", res, buf);
+   close(buffer);
 }
 
 void game_timer(int ppid) {
@@ -144,30 +137,38 @@ char getButtonPress(int fd, unsigned char *buttons) {
 
 int main (int argc, char*argv[]) {
 
-    int fd;
+    //test();
+    //return 0;
+
+    int controller, buffer;
     int r;
     int score = 0;
 
     unsigned char buttons = 2;
     int version = 0x000800;
 
+    char buffer_entry[2];
+    buffer_entry[1] = '\n';
     char test_buffer[] = {'N','N','N','N','N','N','N','N','N','N','N'};
+
+    printf("Welcome to MEMORY MANIA!!\n");
+    printf("Try to remember the sequence! The max score on today's game is %i.\n", MAX_SCORE);
 
     openlog(NULL, 0, LOG_USER); 
     set_signal_handling();
 
-    // open controller
-    printf("Opening device: %s\n", argv[argc - 1]);
-    if ((fd = open(argv[argc - 1], O_RDONLY)) < 0) {
-	printf("Error opening device.");
-	return 1;
+    if(!MEMORYMANIA_DEBUG) {
+        // open controller
+        printf("Opening device: %s\n", argv[argc - 1]);
+        if ((controller = open(argv[argc - 1], O_RDONLY)) < 0) {
+	    printf("Error opening device.\n");
+	    return 1;
+        }
+	ioctl(controller, JSIOCGVERSION, &version);
+        ioctl(controller, JSIOCGBUTTONS, &buttons);
     }
-    printf("Welcome to MEMORY MANIA!!\n");
-    printf("Try to remember the sequence! The max score on today's game is %i.\n", MAX_SCORE);
-    ioctl(fd, JSIOCGVERSION, &version);
-    ioctl(fd, JSIOCGBUTTONS, &buttons);
 
-    // begin timer
+    /*// begin timer
     printf("Creating timer . . .\n");
     int ppid = getpid();
     r = fork();
@@ -176,31 +177,51 @@ int main (int argc, char*argv[]) {
 	exit(-1);
     } else if (r == 0) {
 	game_timer(ppid);
-    }
+    }*/
 
     // generate the first character
     int index_max = sizeof(supported_chars) - 1;
     int rand_index = rand() % (index_max + 1 - 0);
-    char rand_char = supported_chars[rand_index];
-    printf("%c\n", rand_char);
-    test_buffer[0] = rand_char;
-    printf("Begin Sequence. Type this letter\n");
+    buffer_entry[0] = supported_chars[rand_index];
+    printf("%c\n", buffer_entry[0]);
+    buffer = open(BUFFER, O_RDWR);
+    if (buffer < 0) {
+        printf("Error opening buffer device.\n");
+        return -1;
+    }
+    int numwritten = write(buffer, &buffer_entry, 2);
+    close(buffer);
+    //printf("num written: %i\n", numwritten);
 
+    char sequence[MAX_SCORE*2];
+    printf("sequence buffer length: %i\n", MAX_SCORE*2);
     while(!game_over) {
 	printf("score: %i\n", score);
+	buffer = open(BUFFER, O_RDWR);
+        if (buffer < 0) {
+            printf("Error opening buffer device.\n");
+            return -1;
+        }
+	int numread = read(buffer, sequence, sizeof(sequence));
+	close(buffer);
+	printf("read: %i\n", numread);
+	printf("Current Sequence: %s", sequence);
+
 	if (caught_sigalrm) {
 	    printf("Sigalrm caught main 1\n");
 	}
+        int j = 0;
 	for (int i = 0; i <= score; i++) {
 	    printf("i: %i\n", i);
-	    char input = getInput(fd, &buttons);
+	    char input = getInput(controller, &buttons);
 	    if (caught_sigalrm) {
 		printf("Sigalrm caught main 2\n");
 		game_over = true;
 	        break;
 	    }
 	    printf("You said: %c\n", input);
-	    if (input == test_buffer[i]) {
+	    printf("Correct answer: %c\n", sequence[j]);
+	    if (input == sequence[j]) {
 	        printf("Correct!\n");
 		kill(r, SIGUSR1);
 	    } else {
@@ -209,7 +230,10 @@ int main (int argc, char*argv[]) {
 		kill(r, SIGALRM);
 		break;
             }
+	    j++;
+	    j++;
 	}
+	
 	score++;
 	if (score >= MAX_SCORE) {
 	    printf("You win!\n");
@@ -224,12 +248,23 @@ int main (int argc, char*argv[]) {
         // generate new character
 	int index_max = sizeof(supported_chars) - 1;
 	int rand_index = rand() % (index_max + 1 - 0);
-	char rand_char = supported_chars[rand_index];
-	printf("Random character selected: %c (index: %i)\n", rand_char, rand_index);
-        test_buffer[score] = rand_char;
+	buffer_entry[0] = supported_chars[rand_index];
+	printf("Random character selected: %c (index: %i)\n", buffer_entry[0], rand_index);
+        buffer = open(BUFFER, O_RDWR);
+        if (buffer < 0) {
+            printf("Error opening buffer device.\n");
+            return -1;
+        }
+	write(buffer, &buffer_entry, 2);
+	close(buffer);
     }
     printf("Game Over!\n");
     printf("Score: %i\n", score);
 
+    close(controller);
+    /*if(ioctl(buffer, AESDCHAR_FLUSH) < 0) {
+        printf("Error flushing buffer.\n");
+    }*/
+    close(buffer);
     exit(0);
 }

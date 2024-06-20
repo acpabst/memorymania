@@ -3,6 +3,9 @@
  * Author: Andy Pabst
  * Date 6/12/24 */
 
+#ifndef MEMORYMANIA_H_
+#define MEMORYMANIA_H_
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,6 +20,8 @@
 #include <syslog.h>
 #include <string.h>
 
+#include "assignments-3-and-later-acpabst/aesd-char-driver/aesd_ioctl.h"
+
 // Supported Characters
 char supported_chars[] = {'A', 'B', 'X', 'Y', 'L', 'R'};
 
@@ -30,6 +35,15 @@ char supported_chars[] = {'A', 'B', 'X', 'Y', 'L', 'R'};
 #  define getInput(fd, buttons) getButtonPress(fd, buttons)
 #endif
 
-
 #define MAX_SCORE 10
+#define BUFFER "/dev/aesdchar"
 
+// global veriables
+bool game_over = false;
+bool caught_sigalrm = false;
+bool caught_sigusr = false;
+
+int buffer_open();
+void set_signal_handling();
+
+#endif
