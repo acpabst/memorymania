@@ -20,7 +20,6 @@
 #include <syslog.h>
 #include <string.h>
 
-#include "assignments-3-and-later-acpabst/aesd-char-driver/aesd_ioctl.h"
 
 // Supported Characters
 char supported_chars[] = {'A', 'B', 'X', 'Y', 'L', 'R'};
@@ -28,11 +27,13 @@ char supported_chars[] = {'A', 'B', 'X', 'Y', 'L', 'R'};
 #define MEMORYMANIA_DEBUG 0 
 
 #if MEMORYMANIA_DEBUG
-   /* This one for keyboard input */
+   /* This one for keyboard input and local build*/
 #  define getInput(args...) fgetc(stdin)
+#include "assignments-3-and-later-acpabst/aesd-char-driver/aesd_ioctl.h"
 #else
-    /* This one for XBOX Controller input*/
+    /* This one for XBOX Controller input and yocto build*/
 #  define getInput(fd, buttons) getButtonPress(fd, buttons)
+#include <aesd_ioctl.h>
 #endif
 
 #define MAX_SCORE 10
