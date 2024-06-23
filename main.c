@@ -161,26 +161,27 @@ int main (int argc, char*argv[]) {
         // open controller
         printf("Opening device: %s\n", argv[argc - 1]);
         if ((controller = open(argv[argc - 1], O_RDONLY)) < 0) {
-	    printf("Error opening device.\n");
-	    return 1;
+	    syslog(LOG_ERR,"Error opening device. Error: %d\n", errno);
+	    exit(-1);
         }
 	ioctl(controller, JSIOCGVERSION, &version);
         ioctl(controller, JSIOCGBUTTONS, &buttons);
     }
 
-    /*// begin timer
-    printf("Creating timer . . .\n");
+    // begin timer
+    syslog(LOG_INFO,"Creating timer . . .\n");
     int ppid = getpid();
     r = fork();
     if (r < 0) {
-        printf("Error creating timer fork: %d\n", errno);
+        syslog(LOG_ERR, "Error creating timer fork: %d\n", errno);
 	exit(-1);
     } else if (r == 0) {
 	game_timer(ppid);
-    }*/
+    }
 
     // generate the first character
     int index_max = sizeof(supported_chars) - 1;
+    srand(time(0));
     int rand_index = rand() % (index_max + 1 - 0);
     buffer_entry[0] = supported_chars[rand_index];
     printf("%c\n", buffer_entry[0]);
@@ -262,9 +263,16 @@ int main (int argc, char*argv[]) {
     printf("Score: %i\n", score);
 
     close(controller);
-    /*if(ioctl(buffer, AESDCHAR_FLUSH) < 0) {
-        printf("Error flushing buffer.\n");
-    }*/
+    
+    buffer = open(BUFFER, O_RDWR);
+    if (buffer < 0) {
+        printf("Error opening buffer device.\n");
+        return -1;
+    }
+    int ioctl_try = ioctl(buffer, AESDCHAR_FLUSH);
+    if(ioctl_try < 0) {
+        printf("Error flushing buffer. Error: %i\n", errno);
+    }
     close(buffer);
     exit(0);
 }

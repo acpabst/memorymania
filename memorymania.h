@@ -24,7 +24,7 @@
 // Supported Characters
 char supported_chars[] = {'A', 'B', 'X', 'Y', 'L', 'R'};
 
-#define MEMORYMANIA_DEBUG 0 
+#define MEMORYMANIA_DEBUG 0
 
 #if MEMORYMANIA_DEBUG
    /* This one for keyboard input and local build*/
