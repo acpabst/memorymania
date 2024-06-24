@@ -208,6 +208,7 @@ int main (int argc, char*argv[]) {
 	    char input = getInput(controller, &buttons);
 	    printw("%c", input);
 	    refresh();
+	    usleep(250000);
 	    if (input == sequence[j]) {
 		kill(r, SIGUSR1);
 	    } else {
