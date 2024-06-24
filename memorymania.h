@@ -19,7 +19,7 @@
 #include <pthread.h>
 #include <syslog.h>
 #include <string.h>
-
+#include <ncurses.h>
 
 // Supported Characters
 char supported_chars[] = {'A', 'B', 'X', 'Y', 'L', 'R'};

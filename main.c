@@ -49,29 +49,29 @@ void game_timer(int ppid) {
 	exit(-1);
     }
 
-    printf("In timer. Alarm should be set.\n");
-    
     while(!game_over) {
 	sleep(0.01);
         if(caught_sigalrm) {
-	    printf("Sigalarm caught. Time is up!\n");
+	    syslog(LOG_INFO, "Sigarlm caught.");
+	    if(game_over) {
+	        printf("Time is up!\n");
+	    }
 	    kill(ppid, SIGALRM);
 	    break;
 	}
 	if(caught_sigusr) {
-	   printf("Sigusr caught. Resetting timer.\n");
+	   syslog(LOG_INFO,"Sigusr caught. Resetting timer.");
            r = setitimer(ITIMER_REAL, &timer_spec, 0);
 	   caught_sigusr = false;
 	}
     }
-    printf("Exiting Timer Process. . . \n");
     exit(0);
 }
 
 // adapted for this game from jstest 
 char getButtonPress(int fd, unsigned char *buttons) {
     
-    printf("Getting button press\n");
+    syslog(LOG_INFO, "Getting button press");
     char button;
     //int i;
     bool waiting = true;
@@ -89,40 +89,29 @@ char getButtonPress(int fd, unsigned char *buttons) {
     while (waiting) {
 
         if (read(fd, &js, sizeof(struct js_event)) != sizeof(struct js_event)) {
-            printf("Something went wrong");	
+            syslog(LOG_ERR, "Error reading controller input");	
             return 1;
         }
 
-	if (caught_sigalrm) {
-	    // time is up, return dummy character
-	    printf("Time is up, from button press 2\n");
-            return 'N';
-	}
         if (js.type == JS_EVENT_BUTTON && js.value == 1) {
 	    waiting = false;
 	    switch(js.number) {
 	        case 0:
-                    printf("Pressed A\n");
 		    button = 'A';
 		    break;
 	        case 1:
-		    printf("Pressed B\n");
 		    button = 'B';
 		    break;
 	        case 2:
-		    printf("Pressed X\n");
 		    button = 'X';
 		    break;
 	        case 3:
-		    printf("Pressed Y\n");
 		    button = 'Y';
 		    break;
 	        case 4:
-		    printf("Pressed L\n");
 		    button = 'L';
 		    break;
 	        case 5:
-		    printf("Pressed R\n");
 		    button = 'R';
 		    break;
 	        default:
@@ -159,7 +148,7 @@ int main (int argc, char*argv[]) {
 
     if(!MEMORYMANIA_DEBUG) {
         // open controller
-        printf("Opening device: %s\n", argv[argc - 1]);
+        syslog(LOG_INFO,"Opening device: %s", argv[argc - 1]);
         if ((controller = open(argv[argc - 1], O_RDONLY)) < 0) {
 	    syslog(LOG_ERR,"Error opening device. Error: %d\n", errno);
 	    exit(-1);
@@ -167,6 +156,9 @@ int main (int argc, char*argv[]) {
 	ioctl(controller, JSIOCGVERSION, &version);
         ioctl(controller, JSIOCGBUTTONS, &buttons);
     }
+
+    printf("Press Enter, or any controller button to contiue.\n");
+    char input = getInput(controller, &buttons);
 
     // begin timer
     syslog(LOG_INFO,"Creating timer . . .\n");
@@ -179,54 +171,50 @@ int main (int argc, char*argv[]) {
 	game_timer(ppid);
     }
 
+    // begin ncurses
+    initscr();
+    echo();
+
     // generate the first character
     int index_max = sizeof(supported_chars) - 1;
     srand(time(0));
     int rand_index = rand() % (index_max + 1 - 0);
     buffer_entry[0] = supported_chars[rand_index];
-    printf("%c\n", buffer_entry[0]);
     buffer = open(BUFFER, O_RDWR);
     if (buffer < 0) {
-        printf("Error opening buffer device.\n");
+        syslog(LOG_ERR, "Error opening buffer device.");
         return -1;
     }
     int numwritten = write(buffer, &buffer_entry, 2);
     close(buffer);
-    //printf("num written: %i\n", numwritten);
 
     char sequence[MAX_SCORE*2];
-    printf("sequence buffer length: %i\n", MAX_SCORE*2);
     while(!game_over) {
-	printf("score: %i\n", score);
 	buffer = open(BUFFER, O_RDWR);
         if (buffer < 0) {
-            printf("Error opening buffer device.\n");
+            syslog(LOG_ERR, "Error opening buffer device.");
             return -1;
         }
 	int numread = read(buffer, sequence, sizeof(sequence));
-	close(buffer);
-	printf("read: %i\n", numread);
-	printf("Current Sequence: %s", sequence);
-
-	if (caught_sigalrm) {
-	    printf("Sigalrm caught main 1\n");
+	for (int i = 0; i <= numread; i++) {
+	    printw("%c", sequence[i]); refresh();
+	    usleep(500000);
 	}
+	clear(); refresh();
+	close(buffer);
+
         int j = 0;
 	for (int i = 0; i <= score; i++) {
-	    printf("i: %i\n", i);
 	    char input = getInput(controller, &buttons);
-	    if (caught_sigalrm) {
-		printf("Sigalrm caught main 2\n");
-		game_over = true;
-	        break;
-	    }
-	    printf("You said: %c\n", input);
-	    printf("Correct answer: %c\n", sequence[j]);
+	    printw("%c", input);
+	    refresh();
 	    if (input == sequence[j]) {
-	        printf("Correct!\n");
 		kill(r, SIGUSR1);
 	    } else {
+	        endwin();	    
 		printf("Incorrect :(\n");
+		printf("You said: %c\n", input);
+                printf("Correct answer: %c\n", sequence[j]);
 		game_over = true;
 		kill(r, SIGALRM);
 		break;
@@ -234,27 +222,32 @@ int main (int argc, char*argv[]) {
 	    j++;
 	    j++;
 	}
-	
-	score++;
+	if (MEMORYMANIA_DEBUG && !game_over) {
+            getchar(); // get carriage return
+        }
+	clear(); refresh();
+	usleep(250000);
+	if(!game_over) {
+	    score++;
+	    printw("Correct!"); refresh();
+	    usleep(500000);
+	    clear(); refresh();
+	}        
 	if (score >= MAX_SCORE) {
+	    endwin();
 	    printf("You win!\n");
 	    game_over = true;
 	    break;
         }
 
-	if (MEMORYMANIA_DEBUG && !game_over) {
-	    getchar(); // get carriage return
-	}
-        
         // generate new character
 	int index_max = sizeof(supported_chars) - 1;
 	int rand_index = rand() % (index_max + 1 - 0);
 	buffer_entry[0] = supported_chars[rand_index];
-	printf("Random character selected: %c (index: %i)\n", buffer_entry[0], rand_index);
         buffer = open(BUFFER, O_RDWR);
         if (buffer < 0) {
-            printf("Error opening buffer device.\n");
-            return -1;
+            syslog(LOG_ERR, "Error opening buffer device. Error: %i\n", errno);
+            exit(-1);
         }
 	write(buffer, &buffer_entry, 2);
 	close(buffer);
@@ -267,12 +260,13 @@ int main (int argc, char*argv[]) {
     buffer = open(BUFFER, O_RDWR);
     if (buffer < 0) {
         printf("Error opening buffer device.\n");
-        return -1;
+        exit(-1);
     }
     int ioctl_try = ioctl(buffer, AESDCHAR_FLUSH);
     if(ioctl_try < 0) {
         printf("Error flushing buffer. Error: %i\n", errno);
     }
     close(buffer);
+    endwin();
     exit(0);
 }

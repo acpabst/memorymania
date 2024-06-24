@@ -1,6 +1,6 @@
 CC ?= gcc
 CFLAGS ?= -g -pthread
-LDFLAGS ?= -lm
+LDFLAGS ?= -lncurses
 
 ifeq ($(CROSS_COMPILE),)
  $(info Compiling natively.)
