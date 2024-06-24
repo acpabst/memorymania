@@ -196,7 +196,7 @@ int main (int argc, char*argv[]) {
             return -1;
         }
 	int numread = read(buffer, sequence, sizeof(sequence));
-	for (int i = 0; i <= numread; i++) {
+	for (int i = 0; i < numread; i++) {
 	    printw("%c", sequence[i]); refresh();
 	    usleep(500000);
 	}
